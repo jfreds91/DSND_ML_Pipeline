@@ -10,9 +10,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.multioutput import MultiOutputClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
-from sklearn.model_selection import GridSearchCV
-from sklearn.svm import SVC
-from sklearn.ensemble import AdaBoostClassifier
+#from sklearn.model_selection import GridSearchCV
+#from sklearn.svm import SVC
+#from sklearn.ensemble import AdaBoostClassifier
 
 from nltk import word_tokenize
 from nltk.stem.wordnet import WordNetLemmatizer
@@ -72,9 +72,9 @@ def build_model():
     pipeline = Pipeline([
         ('vect', CountVectorizer(tokenizer = tokenize)),
         ('tfidf', TfidfTransformer()),
-        #('clf', MultiOutputClassifier(RandomForestClassifier()))
+        ('clf', MultiOutputClassifier(RandomForestClassifier()))
         #('clf', MultiOutputClassifier(SVC()))
-        ('clf', MultiOutputClassifier(AdaBoostClassifier()))
+        #('clf', MultiOutputClassifier(AdaBoostClassifier()))
     ])
     return pipeline
 
@@ -85,7 +85,7 @@ def evaluate_model(model, X_test, Y_test, category_names):
 
 
 def save_model(model, model_filepath):
-    pickle.dump(cv.best_estimator_, open(model_filepath, 'wb'))
+    pickle.dump(model, open(model_filepath, 'wb'))
 
 
 def main():
