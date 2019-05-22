@@ -18,7 +18,7 @@ def load_data(messages_filepath, categories_filepath):
     categories.columns = category_colnames
     
     # convert cols to binary
-    for column in categories:
+    for column in categories.columns:
         # set each value to be the last character of the string
         categories[column] = categories[column].str[-1]
 
@@ -34,10 +34,10 @@ def load_data(messages_filepath, categories_filepath):
 def clean_data(df):
     
     # drop dupes
-    df.dropna(subset = [cat for cat in categories.columns], inplace = True)
-    
-    # remove NA
     df.drop_duplicates(subset='id', keep='first', inplace=True)
+    
+    # Remove NA
+    df.dropna(subset = [cat for cat in categories.columns], inplace = True)    
     
     return df
     
