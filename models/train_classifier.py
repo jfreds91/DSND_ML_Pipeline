@@ -31,16 +31,15 @@ import pickle
 def load_data(database_filepath):
     '''
     INPUTS
-    database_filepath: SQL database filepath
-    
+        database_filepath (string): SQL database filepath
     RETURNS
-    X: Series 
-    Y: Series 
-    category_names: list of category names
+        X (Series): all X values
+        Y (Series): all Y values
+        category_names (list): list of category names
     '''
     
     # load data from database
-    engine = create_engine(database_filepath)
+    engine = create_engine('sqlite:///' + database_filepath)
     df = pd.read_sql_table('InsertTableName', con = engine)
 
     predict_cols = ['request', 'offer',
@@ -57,6 +56,12 @@ def load_data(database_filepath):
     return X, y, predict_cols
 
 def tokenize(text):
+    '''
+    INPUTS:
+        text (string): text for tokenization
+    RETURNS:
+        clean_tokens (list): lemmatized and lower case tokens
+    '''
     tokens = word_tokenize(text)
     lemm = WordNetLemmatizer()
     
@@ -80,11 +85,13 @@ def build_model():
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
-    y_preds = pipeline.predict(X_test)
-    print(classification_report(Y_test, y_preds, labels=category_names))
+    # evaluate model's performance on test data and print results
+    y_preds = model.predict(X_test)
+    print(classification_report(Y_test, y_preds, target_names=category_names))
 
 
 def save_model(model, model_filepath):
+    # save model as .pkl file
     pickle.dump(model, open(model_filepath, 'wb'))
 
 
@@ -92,7 +99,7 @@ def main():
     if len(sys.argv) == 3:
         database_filepath, model_filepath = sys.argv[1:]
         print('Loading data...\n    DATABASE: {}'.format(database_filepath))
-        X, Y, category_names = load_data(database_filepath)
+        X, Y, category_names = load_data(database_filepath )
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
         
         print('Building model...')

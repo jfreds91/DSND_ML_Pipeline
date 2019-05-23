@@ -3,6 +3,14 @@ import pandas as pd
 from sqlalchemy import create_engine
 
 def load_data(messages_filepath, categories_filepath):
+        '''
+    INPUTS:
+        messages_filepath (string): filepath of disaster_messages.csv
+        categories_filepath (string): filepath of disaster_categories.csv
+    RETURNS:
+        df (DataFrame): merged dataframe, with columns transformed
+        categories (list): list of category names
+    '''
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
     
@@ -29,21 +37,27 @@ def load_data(messages_filepath, categories_filepath):
     df.drop(columns = ['categories'], inplace = True)
     df = df.join(categories, sort = False)
     
-    return df
+    return df, categories.columns.tolist()
 
-def clean_data(df):
-    
+def clean_data(df, categories):
+    '''
+    INPUTS:
+        df (DataFrame): dataframe for cleaning
+        categories (list): list of categories for classification
+    RETURNS:
+        df (DataFrame): cleaned dataframe
+    '''
     # drop dupes
     df.drop_duplicates(subset='id', keep='first', inplace=True)
     
     # Remove NA
-    df.dropna(subset = [cat for cat in categories.columns], inplace = True)    
+    df.dropna(subset = [cat for cat in categories], inplace = True)    
     
     return df
     
 def save_data(df, database_filename):
     # save df
-    engine = create_engine('sqlite:///InsertDatabaseName.db')
+    engine = create_engine('sqlite:///' + database_filename)
     df.to_sql('InsertTableName', engine, index=False, if_exists = 'replace')  
 
 
@@ -54,10 +68,10 @@ def main():
 
         print('Loading data...\n    MESSAGES: {}\n    CATEGORIES: {}'
               .format(messages_filepath, categories_filepath))
-        df = load_data(messages_filepath, categories_filepath)
+        df, categories_list = load_data(messages_filepath, categories_filepath)
 
         print('Cleaning data...')
-        df = clean_data(df)
+        df = clean_data(df, categories_list)
         
         print('Saving data...\n    DATABASE: {}'.format(database_filepath))
         save_data(df, database_filepath)
