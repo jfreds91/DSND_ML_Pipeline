@@ -8,6 +8,7 @@ from nltk.tokenize import word_tokenize
 from flask import Flask
 from flask import render_template, request, jsonify
 from plotly.graph_objs import Bar
+from plotly.graph_objs import Box
 from sklearn.externals import joblib
 from sqlalchemy import create_engine
 
@@ -43,9 +44,29 @@ def index():
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
     
+    cat_names = df.columns.tolist()
+    for x in ['id', 'message', 'original', 'genre']:
+        cat_names.remove(x)
+    cat_counts = df[cat_names].sum()
+    
+    df['length'] = df['message'].str.len()
+    name_len_val = []
+    for col in cat_names:
+        name_len_val.append(df[df[col]==1]['length'].values)
+        
+    data3 = []
+    for i, name in enumerate(cat_names):
+        data3.append(Box(y=name_len_val[i],
+                            name = name,
+                            boxpoints = 'outliers'))
+
+
+
+    
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
     graphs = [
+        ####################### PLOT 1 ##########################
         {
             'data': [
                 Bar(
@@ -63,15 +84,47 @@ def index():
                     'title': "Genre"
                 }
             }
+        },
+        ####################### PLOT 2 ##########################
+        {
+            'data': [
+                Bar(
+                    x=cat_names,
+                    y=cat_counts
+                )
+            ],
+
+            'layout': {
+                'title': 'Distribution of Tagged Categories',
+                'yaxis': {
+                    'title': "Count"
+                },
+                'xaxis': {
+                    'title': "Cat"
+                }
+            }
+        },
+        ####################### PLOT 3 ##########################
+        {
+            'data': data3,
+
+            'layout': {
+                'title': "Box Plot Styling Outliers",
+                'yaxis': {
+                    'type':'log',
+                    'autorange':'True'
+                }
+    
+            }
         }
     ]
     
     # encode plotly graphs in JSON
     ids = ["graph-{}".format(i) for i, _ in enumerate(graphs)]
-    graphJSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
+    graph1JSON = json.dumps(graphs, cls=plotly.utils.PlotlyJSONEncoder)
     
     # render web page with plotly graphs
-    return render_template('master.html', ids=ids, graphJSON=graphJSON)
+    return render_template('master.html', ids=ids, graphJSON=graph1JSON)
 
 
 # web page that handles user query and displays model results
